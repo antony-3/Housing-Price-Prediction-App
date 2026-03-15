@@ -6,7 +6,8 @@ import numpy as np
 
 
 model = joblib.load("/Users/user/Documents/housing_project/backend/model.pkl")
-
+scaler_X = joblib.load("/Users/user/Documents/housing_project/backend/scaler_X.pkl")
+scaler_y = joblib.load("/Users/user/Documents/housing_project/backend/scaler_y.pkl")
 app = FastAPI()
 
 class HousingData(BaseModel):
@@ -31,7 +32,12 @@ def get_info():
 async def get_prediction(data:HousingData):
     input_data = np.array([[data.longitude, data.latitude, data.housing_median_age, data.total_rooms, 
                            data.total_bedrooms, data.population, data.household, data.median_income]])
-    prediction = model.predict(input_data)[0]
+    input_scaled = scaler_X.transform(input_data)
+
+    pred_scaled = model.predict(input_data)[0]
+
+    prediction = scaler_y.inverse_transform(pred_scaled.reshape(-1, 1))[0, 0]
+
     return{'prediction': float(prediction)}
 
 if __name__ == "__main__":
